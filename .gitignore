@@ -12,3 +12,4 @@ coverage
 
 # Development files
 /notes
+/tests/
