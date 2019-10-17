@@ -5,13 +5,14 @@ import io.mcred.vexrun.utils.CommandExecutor
 data class Test(
         val name: String,
         val command: String,
-        val exitCode: Int
+        val exitValue: Int
 ){
 
     companion object {
         fun Test.run(){
-            val result = CommandExecutor().exec(this.command, this.exitCode)
-            if (result) {
+            val result = CommandExecutor().exec(this.command)
+
+            if (result.exitValue == this.exitValue) {
                 println("$name: passed")
             } else {
                 println("$name: failed")
