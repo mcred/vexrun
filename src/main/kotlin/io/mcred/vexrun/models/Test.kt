@@ -1,11 +1,12 @@
 package io.mcred.vexrun.models
 
 import io.mcred.vexrun.utils.CommandExecutor
+import io.mcred.vexrun.utils.CommandExecutor.Companion.toList
 
 data class Test(
         val name: String,
         var status: Status,
-        val command: String,
+        val command: List<String>,
         val exitValue: Int,
         val wait: Int = 0,
         val outputs: List<Output>? = null
@@ -82,10 +83,19 @@ data class Test(
                 }
             }
 
+            val command = mutableListOf<String>()
+            if (obj["command"] is String) {
+                val commandString = obj["command"] as String
+                command.addAll(commandString.toList())
+            } else {
+                val commandList = obj["command"] as List<String>
+                command.addAll(commandList)
+            }
+
             return Test(
                 name,
                 Status.PENDING,
-                obj["command"] as String,
+                command,
                 obj["exitValue"] as Int,
                 if(obj.containsKey("wait")) obj["wait"] as Int else 0,
                 if(outputList.isNotEmpty()) outputList else null

@@ -7,9 +7,9 @@ import io.mcred.vexrun.models.Result
 
 class CommandExecutor(private val timeout: Long = 10, private val unit: TimeUnit = TimeUnit.MINUTES) {
 
-    fun exec(command: String): Result {
+    fun exec(command: List<String>): Result {
         val builder = ProcessBuilder()
-        builder.command(command.toList())
+        builder.command(command)
         val process = builder.start()
         var result = Result(0, null, null)
         try {
@@ -23,7 +23,7 @@ class CommandExecutor(private val timeout: Long = 10, private val unit: TimeUnit
             }
             val output = process.inputStream.bufferedReader().readText().trim()
             if (process.isAlive) {
-                throw IOException("Timed out waiting for command: $command")
+                throw IOException("Timed out waiting for command: ${command.toString()}")
             }
             result = Result (
                     process.exitValue(),
@@ -42,6 +42,14 @@ class CommandExecutor(private val timeout: Long = 10, private val unit: TimeUnit
     companion object {
         fun String.toList(): List<String> {
             return this.split(" ")
+        }
+
+        fun List<String>.stringify(): String {
+            var retString = ""
+            for (item in this) {
+                retString += "$item "
+            }
+            return retString
         }
     }
 
