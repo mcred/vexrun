@@ -4,7 +4,7 @@ import io.mcred.vexrun.utils.CommandExecutor
 
 data class Test(
         val name: String,
-        val status: Status,
+        var status: Status,
         val command: String,
         val exitValue: Int,
         val wait: Int = 0,
@@ -20,9 +20,9 @@ data class Test(
         fun Test.run(){
             print("${this.name}: ")
             val result = CommandExecutor().exec(this.command)
-            var compare = 0
-            val exitCompare = result.exitValue - this.exitValue
-            if (exitCompare != 0) compare++
+            if (result.exitValue != this.exitValue) {
+                this.status = Status.FAILED
+            }
             if (!this.outputs.isNullOrEmpty()) {
                 for (output in this.outputs) {
                     val outputCompare = when (output.compare) {
@@ -30,15 +30,15 @@ data class Test(
                         else -> result.stdout.equals(output.expected)
                     }
                     if (!outputCompare) {
-                        compare++
+                        this.status = Status.FAILED
                     }
                 }
             }
-
-            if (compare == 0) {
-                println("passed")
-            } else {
-                println("failed")
+            if (this.status != Status.FAILED) {
+                this.status = Status.PASSED
+            }
+            println(this.status)
+            if (this.status == Status.FAILED) {
                 println(result)
             }
             Thread.sleep(wait.toLong() * 1000)
