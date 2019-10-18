@@ -25,7 +25,7 @@ object Cli {
         return testFiles
     }
 
-    class Run : CliktCommand() {
+    class Vexrun : CliktCommand() {
         private val testDirectory: String by option("-d", "--directory", help = "Directory containing test files.").default(System.getProperty("user.dir"))
 
         override fun run() {
@@ -53,7 +53,7 @@ object Cli {
     }
 
     @JvmStatic
-    fun main(args: Array<String>) = Run().main(args)
+    fun main(args: Array<String>) = Vexrun().main(args)
 }
 
 
