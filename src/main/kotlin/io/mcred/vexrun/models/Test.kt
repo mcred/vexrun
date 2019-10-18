@@ -5,18 +5,20 @@ import io.mcred.vexrun.utils.CommandExecutor
 data class Test(
         val name: String,
         val command: String,
-        val exitValue: Int
+        val exitValue: Int,
+        val wait: Int = 0
 ){
 
     companion object {
         fun Test.run(){
+            print("${this.name}: ")
             val result = CommandExecutor().exec(this.command)
-
             if (result.exitValue == this.exitValue) {
-                println("$name: passed")
+                println("passed")
             } else {
-                println("$name: failed")
+                println("failed")
             }
+            Thread.sleep(wait.toLong() * 1000)
         }
 
         @JvmStatic
@@ -26,7 +28,8 @@ data class Test(
             return Test(
                 name,
                 obj["command"] as String,
-                obj["exitValue"] as Int
+                obj["exitValue"] as Int,
+                if(obj.containsKey("wait")) obj["wait"] as Int else 0
             )
         }
     }

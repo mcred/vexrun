@@ -11,6 +11,7 @@ class CommandExecutor(private val timeout: Long = 10, private val unit: TimeUnit
         val builder = ProcessBuilder()
         builder.command(command.toList())
         val process = builder.start()
+        var result = Result(0, null, null)
         try {
             /**
             Windows has an issue with the process.waitFor being at the beginning of this loop.
@@ -20,20 +21,22 @@ class CommandExecutor(private val timeout: Long = 10, private val unit: TimeUnit
             if (SystemUtils.IS_OS_MAC || SystemUtils.IS_OS_LINUX) {
                 process.waitFor(timeout, unit)
             }
+            val output = process.inputStream.bufferedReader().readText().trim()
             if (process.isAlive) {
                 throw IOException("Timed out waiting for command: $command")
             }
+            result = Result (
+                    process.exitValue(),
+                    output,
+                    process.errorStream.bufferedReader().readText().trim()
+            )
             if (SystemUtils.IS_OS_WINDOWS) {
                 process.waitFor(timeout, TimeUnit.MINUTES)
             }
-            return Result (
-                process.exitValue(),
-                process.inputStream.bufferedReader().readText(),
-                process.errorStream.bufferedReader().readText()
-            )
         } finally {
             process.destroy()
         }
+        return result
     }
 
     companion object {
