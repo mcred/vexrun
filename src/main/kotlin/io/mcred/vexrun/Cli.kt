@@ -26,7 +26,6 @@ object Cli {
     }
 
     class Run : CliktCommand() {
-        //val config: String by option("-c", "--config", help = "Location of configuration file.").default("config.yml")
         private val testDirectory: String by option("-d", "--directory", help = "Directory containing test files.").default(System.getProperty("user.dir"))
 
         override fun run() {
