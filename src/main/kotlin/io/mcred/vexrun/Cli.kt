@@ -39,8 +39,15 @@ object Cli {
                     tests.add(Test.loadFromFile(test))
                 }
             }
+            var failedTests = 0
             for (test in tests) {
                 test.run()
+                if (test.status == Test.Status.FAILED) {
+                    failedTests++
+                }
+            }
+            if (failedTests != 0 ) {
+                exitProcess(1)
             }
         }
     }

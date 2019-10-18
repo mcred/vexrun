@@ -19,11 +19,18 @@ data class Output(
 
 data class Test(
         val name: String,
+        val status: Status,
         val command: String,
         val exitValue: Int,
         val wait: Int = 0,
         val outputs: List<Output>? = null
 ){
+    enum class Status(val value: String){
+        PENDING("PENDING"),
+        PASSED("PASSED"),
+        FAILED("FAILED")
+    }
+
     companion object {
         fun Test.run(){
             print("${this.name}: ")
@@ -92,6 +99,7 @@ data class Test(
 
             return Test(
                 name,
+                Status.PENDING,
                 obj["command"] as String,
                 obj["exitValue"] as Int,
                 if(obj.containsKey("wait")) obj["wait"] as Int else 0,
