@@ -33,7 +33,7 @@ data class Env(
 data class Test(
         val name: String,
         var status: Status,
-        val command: List<String>,
+        val command: MutableList<String>,
         val exitValue: Int,
         val wait: Int = 0,
         val outputs: List<Output>? = null,
@@ -48,6 +48,23 @@ data class Test(
     companion object {
         fun Test.run(variables: Variables){
             print("${this.name}: ")
+
+            if (!this.envs.isNullOrEmpty()) {
+                for (env in this.envs){
+                    if (env.operation == Env.Operation.GET) {
+                        val variable = variables.getVariablesByKey(env.key)[0]
+                        for (item in this.command) {
+                            if (item == "$${env.key}") {
+                                this.command[this.command.indexOf(item)] = variable.value
+                            }
+                        }
+                        for (output in this.outputs!!) {
+                            output.expected = output.expected.replace("$${env.key}", variable.value)
+                        }
+                    }
+                }
+            }
+
             val result = CommandExecutor().exec(this.command)
             if (result.exitValue != this.exitValue) {
                 this.status = Status.FAILED
@@ -114,7 +131,7 @@ data class Test(
             return outputList
         }
 
-        private fun getCommandFromObj(obj: Map<String, Any>): List<String> {
+        private fun getCommandFromObj(obj: Map<String, Any>): MutableList<String> {
             val command = mutableListOf<String>()
             if (obj["command"] is String) {
                 val commandString = obj["command"] as String
@@ -127,7 +144,7 @@ data class Test(
         }
 
         @JvmStatic
-        fun loadFromFile(raw: Map<String, Any>): Test {
+        fun loadFromFile(raw: Map<String, Any>, variables: Variables): Test {
             val name = raw.keys.first()
             val obj = raw[name] as Map<String, Any>
 
@@ -164,12 +181,17 @@ data class Test(
                         }
                     }
                     if (key == "get") {
-
+                        val key = rawEnv["get"] as String
+                        val env = Env(
+                                Env.Operation.GET,
+                                key,
+                                Env.Type.STRING,
+                                null
+                        )
+                        envList.add(env)
                     }
                 }
             }
-
-
             val outputs = getOutputsFromObj(obj)
             return Test(
                 name,

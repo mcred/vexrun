@@ -3,7 +3,7 @@ package io.mcred.vexrun.models
 data class Output(
         val type:  Type,
         val compare: Compare,
-        val expected: String
+        var expected: String
 ) {
     enum class Type(val value: String){
         STDOUT("STDOUT"),

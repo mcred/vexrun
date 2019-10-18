@@ -39,7 +39,7 @@ object Cli {
                 val obj: Map<String, Any> = Yaml().load(inputStream)
                 val rawTests = obj["tests"] as List<Map<String, Any>>
                 for (test in rawTests) {
-                    tests.tests.add(Test.loadFromFile(test))
+                    tests.tests.add(Test.loadFromFile(test, tests.variables))
                 }
             }
             for (env in System.getenv()) {
