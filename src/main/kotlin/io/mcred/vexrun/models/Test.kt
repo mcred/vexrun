@@ -5,31 +5,6 @@ import io.mcred.vexrun.utils.CommandExecutor
 import io.mcred.vexrun.utils.CommandExecutor.Companion.toList
 import io.mcred.vexrun.models.Env.Companion.getVariableFromResult
 
-data class Env(
-        val operation: Operation,
-        val key: String,
-        val type: Type,
-        val pattern: Map<String, String>?
-) {
-    enum class Operation(val value: String) {
-        GET("GET"),
-        SET("SET")
-    }
-    enum class Type(val value: String) {
-        STRING("STRING"),
-        REPLACE("REPLACE")
-    }
-    companion object{
-        fun Env.getVariableFromResult(result: Result): Variable {
-            val value = when(this.type) {
-                Type.REPLACE -> result.stdout!!.replace("${this.pattern!!["find"]}", "${this.pattern["replace"]}")
-                else -> result.stdout!!
-            }
-            return Variable(this.key, value)
-        }
-    }
-}
-
 data class Test(
         val name: String,
         var status: Status,
@@ -64,7 +39,6 @@ data class Test(
                     }
                 }
             }
-
             val result = CommandExecutor().exec(this.command)
             if (result.exitValue != this.exitValue) {
                 this.status = Status.FAILED
@@ -73,6 +47,7 @@ data class Test(
                 for (output in this.outputs) {
                     val outputCompare = when (output.compare) {
                         Output.Compare.CONTAINS -> result.stdout!!.contains(output.expected)
+                        Output.Compare.EXCLUDES -> !result.stdout!!.contains(output.expected)
                         else -> result.stdout.equals(output.expected)
                     }
                     if (!outputCompare) {
@@ -108,19 +83,24 @@ data class Test(
                     outputList.add(output)
                 } else {
                     val outputMap = rawOutput as Map<String, Any>
-                    if (outputMap["contains"] is String) {
+                    val key = outputMap.keys.first()
+                    val compare = when(key){
+                        "contains" -> Output.Compare.CONTAINS
+                        else -> Output.Compare.EXCLUDES
+                    }
+                    if (outputMap[key] is String) {
                         val output = Output(
                                 Output.Type.STDOUT,
-                                Output.Compare.CONTAINS,
-                                outputMap["contains"] as String
+                                compare,
+                                outputMap[key] as String
                         )
                         outputList.add(output)
                     } else {
-                        val outputArray = outputMap["contains"] as List<String>
+                        val outputArray = outputMap[key] as List<String>
                         for (outputItem in outputArray) {
                             val output = Output(
                                     Output.Type.STDOUT,
-                                    Output.Compare.CONTAINS,
+                                    compare,
                                     outputItem
                             )
                             outputList.add(output)

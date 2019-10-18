@@ -11,6 +11,7 @@ data class Output(
     }
     enum class Compare(val value: String){
         EQUALS("EQUALS"),
+        EXCLUDES("EXCLUDES"),
         CONTAINS("CONTAINS");
     }
 }
