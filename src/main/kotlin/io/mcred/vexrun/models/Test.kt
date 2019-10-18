@@ -17,6 +17,7 @@ data class Test(
                 println("passed")
             } else {
                 println("failed")
+                println(result)
             }
             Thread.sleep(wait.toLong() * 1000)
         }
