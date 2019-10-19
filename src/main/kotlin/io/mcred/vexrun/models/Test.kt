@@ -4,6 +4,7 @@ import io.mcred.vexrun.controllers.Variables
 import io.mcred.vexrun.utils.CommandExecutor
 import io.mcred.vexrun.utils.CommandExecutor.Companion.toList
 import io.mcred.vexrun.models.Env.Companion.getVariableFromResult
+import io.mcred.vexrun.models.Output.Companion.compare
 
 data class Test(
         val name: String,
@@ -23,7 +24,6 @@ data class Test(
     companion object {
         fun Test.run(variables: Variables){
             print("${this.name}: ")
-
             if (!this.envs.isNullOrEmpty()) {
                 for (env in this.envs){
                     if (env.operation == Env.Operation.GET) {
@@ -43,16 +43,10 @@ data class Test(
             if (result.exitValue != this.exitValue) {
                 this.status = Status.FAILED
             }
-            if (!this.outputs.isNullOrEmpty()) {
-                for (output in this.outputs) {
-                    val outputCompare = when (output.compare) {
-                        Output.Compare.CONTAINS -> result.stdout!!.contains(output.expected)
-                        Output.Compare.EXCLUDES -> !result.stdout!!.contains(output.expected)
-                        else -> result.stdout.equals(output.expected)
-                    }
-                    if (!outputCompare) {
-                        this.status = Status.FAILED
-                    }
+            for (output in this.outputs!!) {
+                val outputCompare = output.compare(result)
+                if (!outputCompare) {
+                    this.status = Status.FAILED
                 }
             }
             if (this.status != Status.FAILED) {
@@ -179,7 +173,7 @@ data class Test(
                 getCommandFromObj(obj),
                 obj["exitValue"] as Int,
                 if(obj.containsKey("wait")) obj["wait"] as Int else 0,
-                if(outputs.isNotEmpty()) outputs else null,
+                outputs,
                 if(envList.isNotEmpty()) envList else null
             )
         }

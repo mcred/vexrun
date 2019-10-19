@@ -14,4 +14,18 @@ data class Output(
         EXCLUDES("EXCLUDES"),
         CONTAINS("CONTAINS");
     }
+
+    companion object{
+        fun Output.compare(result: Result): Boolean {
+            val actual = when(this.type) {
+                Type.STDOUT -> result.stdout!!
+                else -> result.stderr!!
+            }
+            return when (this.compare) {
+                Compare.EXCLUDES -> !actual.contains(this.expected)
+                Compare.CONTAINS -> actual.contains(this.expected)
+                else -> actual == this.expected
+            }
+        }
+    }
 }
