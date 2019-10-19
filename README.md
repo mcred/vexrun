@@ -11,6 +11,10 @@ This CLI test runner was built for one application and one application only. It 
 ### Usage
 vexrun will traverse the current directory or a specified directory for all yml or yaml files that contain tests. Each test will pass or fail depending on the provided acceptance criteria. Any failures will exit the process with code 1. If all tests pass, the exit code will be 0. 
 
+```bash
+$ java -jar vexrun.jar -d ./path/to/tests`
+```
+
 ### Sample
 The following sample tests are used to test the [Getting Started](https://titan-data.io/getting-started) examples for titan and represent the different methods for commands and validation. 
 
