@@ -20,7 +20,7 @@ data class Test(
         PASSED("PASSED"),
         FAILED("FAILED")
     }
-    
+
     companion object {
         fun Test.run(variables: Variables){
             print("${this.name}: ")
@@ -66,39 +66,38 @@ data class Test(
 
         private fun getOutputsFromObj(obj: Map<String, Any>): List<Output> {
             val outputList = mutableListOf<Output>()
-            if (obj.containsKey("stdout")) {
-                val rawOutput = obj["stdout"]
-                if (rawOutput is String) {
+            val type = when {
+                obj.containsKey("stderr") -> "stderr"
+                else -> "stdout"
+            }
+            val rawOutput = obj[type]
+            if (rawOutput is String) {
+                val output = Output(
+                        Output.Type.valueOf(type.toUpperCase()),
+                        Output.Compare.EQUALS,
+                        rawOutput
+                )
+                outputList.add(output)
+            } else {
+                val outputMap = rawOutput as Map<String, Any>
+                val key = outputMap.keys.first()
+
+                if (outputMap[key] is String) {
                     val output = Output(
-                            Output.Type.STDOUT,
-                            Output.Compare.EQUALS,
-                            rawOutput
+                            Output.Type.valueOf(type.toUpperCase()),
+                            Output.Compare.valueOf(key.toUpperCase()),
+                            outputMap[key] as String
                     )
                     outputList.add(output)
                 } else {
-                    val outputMap = rawOutput as Map<String, Any>
-                    val key = outputMap.keys.first()
-                    val compare = when(key){
-                        "contains" -> Output.Compare.CONTAINS
-                        else -> Output.Compare.EXCLUDES
-                    }
-                    if (outputMap[key] is String) {
+                    val outputArray = outputMap[key] as List<String>
+                    for (outputItem in outputArray) {
                         val output = Output(
-                                Output.Type.STDOUT,
-                                compare,
-                                outputMap[key] as String
+                                Output.Type.valueOf(type.toUpperCase()),
+                                Output.Compare.valueOf(key.toUpperCase()),
+                                outputItem
                         )
                         outputList.add(output)
-                    } else {
-                        val outputArray = outputMap[key] as List<String>
-                        for (outputItem in outputArray) {
-                            val output = Output(
-                                    Output.Type.STDOUT,
-                                    compare,
-                                    outputItem
-                            )
-                            outputList.add(output)
-                        }
                     }
                 }
             }
@@ -155,14 +154,16 @@ data class Test(
                         }
                     }
                     if (key == "get") {
-                        val key = rawEnv["get"] as String
-                        val env = Env(
-                                Env.Operation.GET,
-                                key,
-                                Env.Type.STRING,
-                                null
-                        )
-                        envList.add(env)
+                        val gets = rawEnv["get"] as List<String>
+                        for (key in gets) {
+                            val env = Env(
+                                    Env.Operation.GET,
+                                    key,
+                                    Env.Type.STRING,
+                                    null
+                            )
+                            envList.add(env)
+                        }
                     }
                 }
             }
