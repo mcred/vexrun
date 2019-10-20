@@ -76,7 +76,6 @@ tests:
       env:
         set:
           - COMMIT_GUID:
-              replace:
                 find: "Commit "
                 replace: ""
   - "can insert mongo-test Grace Hopper":
@@ -87,7 +86,7 @@ tests:
   - "can select employees from mongo-test":
       command: [docker, exec, mongo-test, mongo, --quiet, --eval, 'db.employees.find()']
       exitValue: 0
-      stout:
+      stdout:
         contains:
           - '"firstName" : "Ada", "lastName" : "Lovelace"'
           - '"firstName" : "Grace", "lastName" : "Hopper"'
@@ -101,7 +100,8 @@ tests:
         Starting container mongo-test
         $COMMIT_GUID checked out
       env:
-        get: COMMIT_GUID
+        get:
+         - COMMIT_GUID
   - "mongo-test checkout was successful":
       command: [docker, exec, mongo-test, mongo, --quiet, --eval, 'db.employees.find()']
       exitValue: 0
