@@ -5,6 +5,7 @@ import io.mcred.vexrun.utils.CommandExecutor
 import io.mcred.vexrun.utils.CommandExecutor.Companion.toList
 import io.mcred.vexrun.models.Env.Companion.getVariableFromResult
 import io.mcred.vexrun.models.Output.Companion.compareToResults
+import org.json.JSONObject
 
 data class Test(
         val name: String,
@@ -141,7 +142,7 @@ data class Test(
                                     envList.add(env)
                                 } else {
                                     val set = rawSet[key] as Map<String, String>
-                                    val replace = set["replace"] as Map<String, String>
+                                    val replace = JSONObject(set).toMap() as Map<String, String>
                                     val env = Env(
                                         Env.Operation.SET,
                                         key,
