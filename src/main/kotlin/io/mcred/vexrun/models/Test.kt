@@ -4,7 +4,7 @@ import io.mcred.vexrun.controllers.Variables
 import io.mcred.vexrun.utils.CommandExecutor
 import io.mcred.vexrun.utils.CommandExecutor.Companion.toList
 import io.mcred.vexrun.models.Env.Companion.getVariableFromResult
-import io.mcred.vexrun.models.Output.Companion.compare
+import io.mcred.vexrun.models.Output.Companion.compareToResults
 
 data class Test(
         val name: String,
@@ -20,7 +20,7 @@ data class Test(
         PASSED("PASSED"),
         FAILED("FAILED")
     }
-
+    
     companion object {
         fun Test.run(variables: Variables){
             print("${this.name}: ")
@@ -44,7 +44,7 @@ data class Test(
                 this.status = Status.FAILED
             }
             for (output in this.outputs!!) {
-                val outputCompare = output.compare(result)
+                val outputCompare = output.compareToResults(result)
                 if (!outputCompare) {
                     this.status = Status.FAILED
                 }
@@ -53,7 +53,7 @@ data class Test(
                 this.status = Status.PASSED
                 if (!this.envs.isNullOrEmpty()){
                     for (env in this.envs){
-                        variables.variables.add(env.getVariableFromResult(result))
+                        variables.variables.add(env.getVariableFromResult(result, this.outputs.first().type))
                     }
                 }
             }
@@ -118,7 +118,7 @@ data class Test(
         }
 
         @JvmStatic
-        fun loadFromFile(raw: Map<String, Any>, variables: Variables): Test {
+        fun loadFromFile(raw: Map<String, Any>): Test {
             val name = raw.keys.first()
             val obj = raw[name] as Map<String, Any>
 

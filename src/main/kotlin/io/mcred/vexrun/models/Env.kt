@@ -15,10 +15,14 @@ data class Env(
         REPLACE("REPLACE")
     }
     companion object{
-        fun Env.getVariableFromResult(result: Result): Variable {
-            val value = when(this.type) {
-                Type.REPLACE -> result.stdout!!.replace("${this.pattern!!["find"]}", "${this.pattern["replace"]}")
+        fun Env.getVariableFromResult(result: Result, type: Output.Type): Variable {
+            val actual = when (type) {
+                Output.Type.STDERR -> result.stderr!!
                 else -> result.stdout!!
+            }
+            val value = when(this.type) {
+                Type.REPLACE -> actual.replace("${this.pattern!!["find"]}", "${this.pattern["replace"]}")
+                else -> actual
             }
             return Variable(this.key, value)
         }
