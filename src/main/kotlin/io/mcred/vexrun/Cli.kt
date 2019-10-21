@@ -3,13 +3,12 @@ package io.mcred.vexrun
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.parameters.options.*
 import io.mcred.vexrun.controllers.Tests
+import io.mcred.vexrun.controllers.Tests.Companion.addFromFile
 import io.mcred.vexrun.controllers.Variables
 import io.mcred.vexrun.models.Test
 import io.mcred.vexrun.models.Test.Companion.run
 import io.mcred.vexrun.models.Variable
-import org.yaml.snakeyaml.Yaml
 import java.io.File
-import java.io.FileInputStream
 import kotlin.system.exitProcess
 
 object Cli {
@@ -29,20 +28,22 @@ object Cli {
     }
 
     class Vexrun : CliktCommand() {
+        private val testFile: String? by option("-f", "-file", help = "Individual test file to run.")
         private val testDirectory: String by option("-d", "--directory", help = "Directory containing test files.")
                 .default(System.getProperty("user.dir"))
 
         override fun run() {
-            val files = getTestFiles(testDirectory)
             val tests = Tests(Variables())
-            for (file in files) {
-                val inputStream = FileInputStream(file)
-                val obj: Map<String, Any> = Yaml().load(inputStream)
-                val rawTests = obj["tests"] as List<Map<String, Any>>
-                for (test in rawTests) {
-                    tests.tests.add(Test.loadFromFile(test))
+            if (testFile.isNullOrEmpty()) {
+                val files = getTestFiles(testDirectory)
+                for (file in files) {
+                    tests.addFromFile(file)
                 }
+            } else {
+                val file = File(testFile)
+                tests.addFromFile(file)
             }
+
             for (env in System.getenv()) {
                 tests.variables.variables.add(Variable(env.key, env.value))
             }
