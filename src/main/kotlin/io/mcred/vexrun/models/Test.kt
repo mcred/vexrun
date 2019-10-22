@@ -24,22 +24,28 @@ data class Test(
 
     companion object {
         fun Test.run(variables: Variables){
-            print("${this.name}: ")
+            var outputName = this.name
             if (!this.envs.isNullOrEmpty()) {
                 for (env in this.envs){
                     if (env.operation == Env.Operation.GET) {
-                        val variable = variables.getVariablesByKey(env.key)[0]
-                        for (item in this.command) {
-                            if (item == "$${env.key}") {
-                                this.command[this.command.indexOf(item)] = variable.value
+                        val varList = variables.getVariablesByKey(env.key)
+                        for (variable in varList) {
+                            for (item in this.command) {
+                                if (item.contains("$${env.key}")) {
+                                    this.command[this.command.indexOf(item)] = item.replace("$${env.key}", variable.value)
+                                }
                             }
-                        }
-                        for (output in this.outputs!!) {
-                            output.expected = output.expected.replace("$${env.key}", variable.value)
+                            for (output in this.outputs!!) {
+                                output.expected = output.expected.replace("$${env.key}", variable.value)
+                            }
+                            if (outputName.contains("$${env.key}")) {
+                                outputName = outputName.replace("$${env.key}", variable.value)
+                            }
                         }
                     }
                 }
             }
+            print("$outputName: ")
             val result = CommandExecutor().exec(this.command)
             if (result.exitValue != this.exitValue) {
                 this.status = Status.FAILED
@@ -118,8 +124,8 @@ data class Test(
         }
 
         @JvmStatic
-        fun loadFromFile(raw: Map<String, Any>): Test {
-            val name = raw.keys.first()
+        fun loadFromFile(raw: Map<String, Any>, params: Map<String, String>? = null): Test {
+            var name = raw.keys.first()
             val obj = raw[name] as Map<String, Any>
 
             val envList = mutableListOf<Env>()
@@ -168,11 +174,25 @@ data class Test(
                     }
                 }
             }
-            val outputs = getOutputsFromObj(obj)
+            val outputs =getOutputsFromObj(obj)
+            val command = getCommandFromObj(obj)
+            if (!params.isNullOrEmpty()) {
+                for (param in params) {
+                    name = name.replace("$${param.key}", "${param.value}")
+                    for (item in command) {
+                        if (item.contains("$${param.key}")) {
+                            command[command.indexOf(item)] = item.replace("$${param.key}", "${param.value}")
+                        }
+                    }
+                    for (output in outputs) {
+                        output.expected = output.expected.replace("$${param.key}", "${param.value}")
+                    }
+                }
+            }
             return Test(
                 name,
                 Status.PENDING,
-                getCommandFromObj(obj),
+                command,
                 obj["exitValue"] as Int,
                 if(obj.containsKey("wait")) obj["wait"] as Int else 0,
                 outputs,
