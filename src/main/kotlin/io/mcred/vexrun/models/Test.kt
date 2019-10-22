@@ -124,8 +124,8 @@ data class Test(
         }
 
         @JvmStatic
-        fun loadFromFile(raw: Map<String, Any>): Test {
-            val name = raw.keys.first()
+        fun loadFromFile(raw: Map<String, Any>, params: Map<String, String>? = null): Test {
+            var name = raw.keys.first()
             val obj = raw[name] as Map<String, Any>
 
             val envList = mutableListOf<Env>()
@@ -174,11 +174,25 @@ data class Test(
                     }
                 }
             }
-            val outputs = getOutputsFromObj(obj)
+            val outputs =getOutputsFromObj(obj)
+            val command = getCommandFromObj(obj)
+            if (!params.isNullOrEmpty()) {
+                for (param in params) {
+                    name = name.replace("$${param.key}", "${param.value}")
+                    for (item in command) {
+                        if (item.contains("$${param.key}")) {
+                            command[command.indexOf(item)] = item.replace("$${param.key}", "${param.value}")
+                        }
+                    }
+                    for (output in outputs) {
+                        output.expected = output.expected.replace("$${param.key}", "${param.value}")
+                    }
+                }
+            }
             return Test(
                 name,
                 Status.PENDING,
-                getCommandFromObj(obj),
+                command,
                 obj["exitValue"] as Int,
                 if(obj.containsKey("wait")) obj["wait"] as Int else 0,
                 outputs,

@@ -24,7 +24,7 @@ data class Env(
                 Type.REPLACE -> actual.replace("${this.pattern!!["find"]}", "${this.pattern["replace"]}")
                 else -> actual
             }
-            return Variable(this.key, value)
+            return Variable(this.key, value, Variable.Type.RESULT)
         }
     }
 }
