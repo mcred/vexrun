@@ -24,22 +24,28 @@ data class Test(
 
     companion object {
         fun Test.run(variables: Variables){
-            print("${this.name}: ")
+            var outputName = this.name
             if (!this.envs.isNullOrEmpty()) {
                 for (env in this.envs){
                     if (env.operation == Env.Operation.GET) {
-                        val variable = variables.getVariablesByKey(env.key)[0]
-                        for (item in this.command) {
-                            if (item == "$${env.key}") {
-                                this.command[this.command.indexOf(item)] = variable.value
+                        val varList = variables.getVariablesByKey(env.key)
+                        for (variable in varList) {
+                            for (item in this.command) {
+                                if (item.contains("$${env.key}")) {
+                                    this.command[this.command.indexOf(item)] = item.replace("$${env.key}", variable.value)
+                                }
                             }
-                        }
-                        for (output in this.outputs!!) {
-                            output.expected = output.expected.replace("$${env.key}", variable.value)
+                            for (output in this.outputs!!) {
+                                output.expected = output.expected.replace("$${env.key}", variable.value)
+                            }
+                            if (outputName.contains("$${env.key}")) {
+                                outputName = outputName.replace("$${env.key}", variable.value)
+                            }
                         }
                     }
                 }
             }
+            print("$outputName: ")
             val result = CommandExecutor().exec(this.command)
             if (result.exitValue != this.exitValue) {
                 this.status = Status.FAILED

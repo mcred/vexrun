@@ -7,7 +7,7 @@ import java.io.FileInputStream
 
 data class Tests(
         val variables: Variables,
-        val tests: MutableList<Test> = mutableListOf<Test>()
+        val tests: MutableList<Test> = mutableListOf()
 ) {
     companion object{
         fun Tests.addFromFile(file: File) {
