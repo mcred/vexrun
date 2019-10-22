@@ -31,6 +31,7 @@ object Cli {
         private val testFile: String? by option("-f", "-file", help = "Individual test file to run.")
         private val testDirectory: String by option("-d", "--directory", help = "Directory containing test files.")
                 .default(System.getProperty("user.dir"))
+        private val parameters by option("-p", "--parameters").pair().multiple()
 
         override fun run() {
             val tests = Tests(Variables())
@@ -43,9 +44,11 @@ object Cli {
                 val file = File(testFile)
                 tests.addFromFile(file)
             }
-
             for (env in System.getenv()) {
                 tests.variables.variables.add(Variable(env.key, env.value))
+            }
+            for (param in parameters) {
+                tests.variables.variables.add(Variable(param.first, param.second))
             }
             var failedTests = 0
             for (test in tests.tests) {
