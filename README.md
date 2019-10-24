@@ -196,6 +196,7 @@ tests:
       env:
         set:
           - COMMIT_GUID:
+              replace:
                 find: "Commit "
                 replace: ""
   - "can insert mongo-test Grace Hopper":
