@@ -60,7 +60,9 @@ data class Test(
                 this.status = Status.PASSED
                 if (!this.envs.isNullOrEmpty()){
                     for (env in this.envs){
-                        variables.variables.add(env.getVariableFromResult(result, this.outputs.first().type))
+                        if (env.operation == Env.Operation.SET) {
+                            variables.variables.add(env.getVariableFromResult(result, this.outputs.first().type))
+                        }
                     }
                 }
             }
@@ -148,12 +150,13 @@ data class Test(
                                     envList.add(env)
                                 } else {
                                     val set = rawSet[key] as Map<String, String>
-                                    val replace = JSONObject(set).toMap() as Map<String, String>
+                                    val pattern = JSONObject(set)
+                                    val patternKey = pattern.keySet().first()
                                     val env = Env(
                                         Env.Operation.SET,
                                         key,
-                                        Env.Type.REPLACE,
-                                        replace
+                                        Env.Type.valueOf(patternKey.toUpperCase()),
+                                        pattern.getJSONObject(patternKey).toMap() as Map<String, Any>
                                     )
                                     envList.add(env)
                                 }
