@@ -9,10 +9,130 @@ This CLI test runner was built for one application and one application only. It 
 *   Put the jar in a convient location and run with: `java -jar vexrun.jar`
 
 ### Usage
-vexrun will traverse the current directory or a specified directory for all yml or yaml files that contain tests. Each test will pass or fail depending on the provided acceptance criteria. Any failures will exit the process with code 1. If all tests pass, the exit code will be 0. 
+```
+vexrun -h
+Usage: vexrun [OPTIONS]
+
+Options:
+  -f, -file TEXT            Individual test file to run.
+  -d, --directory TEXT      Directory containing test files.
+  -p, --parameters TEXT...
+  -h, --help                Show this message and exit
+
+```
+vexrun will run test from files in two ways: tests from a file specified with the `-f` option or it will traverse the current directory (specified directory with the `-d` option) for all yml or yaml files that contain tests. Each test will pass or fail depending on the provided acceptance criteria. Any failures will exit the process with code 1. If all tests pass, the exit code will be 0. 
 
 ```bash
 $ java -jar vexrun.jar -d ./path/to/tests`
+```
+
+### YAML Structure of Test Files
+The top level of the file can contain any of the following three objects: tests, files or after. 
+```yaml
+tests:
+files:
+after:
+```
+#### Tests
+Each test can be made of the following required or optional parameters.
+```yaml
+tests:
+  - "name of the test REQUIRED":
+      command: REQUIRED
+      exitValue: REQUIRED
+      stdout: REQUIRED
+      wait: OPTIONAL
+      env: OPTIONAL
+```
+
+#### command
+STRING or LIST of command to run.
+```yaml
+command: titan install
+
+command: [titan, install]
+```
+
+#### exitValue
+INT of expected exit code.
+```yaml
+exitValue: 0
+
+exitValue: 1
+``` 
+
+#### stdout or stderr
+The expected response type from the system process. Pick one. There are a few ways to verify the output with stdout and stderr. Here are some examples:
+```yaml
+stdout: Output matches this single line exactly.
+
+stdout: |-
+  Output matches
+  this multi-line output
+  exactly
+
+stdout:
+  contains: Output contains this string somewhere
+
+stdout:
+  contains:
+    - Output contains this string
+    - and this string somewhere
+
+stdout:
+  excludes: output does not contain this string
+
+stdout:
+  excludes:
+    - output does not contain this string
+    - or this string 
+```
+
+#### wait
+INT of seconds to wait after test finishes before starting the next test. 
+```yaml
+wait: 10
+```
+
+#### env
+command and outputs can be defined with variables and to save variables from the test results. Variables are gathered from the system environment variables, passed through the CLI with `-p, --parameters`, saved from test results, or passed in from the files array.  
+```yaml
+env:
+  get:
+    - SAMPLE_VARIABLE
+  set:
+    - ENTIRE_STRING
+    - REPLACE_OUTPUT:
+        replace:
+          find: "find this string"
+          replace: "replace with this then return the output"
+    - SPLIT_OUTPUT:
+        split:
+          delimiter: "split on this"
+          position: 3 return this position from the split array
+      
+```
+
+#### Files
+Contains an array of test files and parameters.
+```yaml
+files:
+  - support-matrix.yml:
+      parameters:
+        DB: mongo
+        VERSION: 4
+        PORT: 27017:27017
+  - support-matrix.yml:
+      parameters:
+        DB: mongo
+        VERSION: 3.6.14
+        PORT: 27017:27017
+``` 
+#### After
+Has items to run after tests. Currently has `clearVars` which will clear out any variables that have been set from test output. Does not affect environment variables or parameters passed via the CLI or files object. 
+```yaml
+after:
+  clearVars: true
 ```
 
 ### Sample
