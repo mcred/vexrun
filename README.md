@@ -39,7 +39,7 @@ Each test can be made of the following required or optional parameters.
 tests:
   - "name of the test REQUIRED":
       command: REQUIRED
-      exitValue: REQUIRED
+      exitValue: REQUIRED Default 0
       stdout: REQUIRED
       wait: OPTIONAL
       env: OPTIONAL
@@ -54,7 +54,7 @@ command: [titan, install]
 ```
 
 #### exitValue
-INT of expected exit code.
+INT of expected exit code. Defaults to 0 expecting a successful CLI command.
 ```yaml
 exitValue: 0
 
@@ -196,6 +196,7 @@ tests:
       env:
         set:
           - COMMIT_GUID:
+              replace:
                 find: "Commit "
                 replace: ""
   - "can insert mongo-test Grace Hopper":
