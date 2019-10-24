@@ -5,7 +5,7 @@
   <groupId>io.mcred</groupId>
   <artifactId>vexrun</artifactId>
   <packaging>jar</packaging>
-  <version>0.0.3</version>
+  <version>0.0.4</version>
   <name>vexrun</name>
   <url>https://github.com/mcred/vexrun</url>
 
