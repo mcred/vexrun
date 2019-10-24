@@ -11,7 +11,7 @@ data class Test(
         val name: String,
         var status: Status,
         val command: MutableList<String>,
-        val exitValue: Int,
+        val exitValue: Int = 0,
         val wait: Int = 0,
         val outputs: List<Output>? = null,
         val envs: List<Env>? = null
@@ -196,7 +196,7 @@ data class Test(
                 name,
                 Status.PENDING,
                 command,
-                obj["exitValue"] as Int,
+                if(obj.containsKey("exitValue")) obj["exitValue"] as Int else 0,
                 if(obj.containsKey("wait")) obj["wait"] as Int else 0,
                 outputs,
                 if(envList.isNotEmpty()) envList else null
