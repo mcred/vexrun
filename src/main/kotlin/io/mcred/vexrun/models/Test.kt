@@ -50,15 +50,17 @@ data class Test(
             if (result.exitValue != this.exitValue) {
                 this.status = Status.FAILED
             }
-            for (output in this.outputs!!) {
-                val outputCompare = output.compareToResults(result)
-                if (!outputCompare) {
-                    this.status = Status.FAILED
+            if (!this.outputs.isNullOrEmpty()) {
+                for (output in this.outputs) {
+                    val outputCompare = output.compareToResults(result)
+                    if (!outputCompare) {
+                        this.status = Status.FAILED
+                    }
                 }
             }
             if (this.status != Status.FAILED) {
                 this.status = Status.PASSED
-                if (!this.envs.isNullOrEmpty()){
+                if (!this.envs.isNullOrEmpty() && !this.outputs.isNullOrEmpty()){
                     for (env in this.envs){
                         if (env.operation == Env.Operation.SET) {
                             variables.variables.add(env.getVariableFromResult(result, this.outputs.first().type))
@@ -73,7 +75,10 @@ data class Test(
             Thread.sleep(wait.toLong() * 1000)
         }
 
-        private fun getOutputsFromObj(obj: Map<String, Any>): List<Output> {
+        private fun getOutputsFromObj(obj: Map<String, Any>): List<Output>? {
+            if (!obj.containsKey("stderr") || !obj.containsKey("stdout")) {
+                return null
+            }
             val outputList = mutableListOf<Output>()
             val type = when {
                 obj.containsKey("stderr") -> "stderr"
@@ -177,7 +182,8 @@ data class Test(
                     }
                 }
             }
-            val outputs =getOutputsFromObj(obj)
+
+            val outputs = getOutputsFromObj(obj)
             val command = getCommandFromObj(obj)
             if (!params.isNullOrEmpty()) {
                 for (param in params) {
@@ -187,8 +193,10 @@ data class Test(
                             command[command.indexOf(item)] = item.replace("$${param.key}", "${param.value}")
                         }
                     }
-                    for (output in outputs) {
-                        output.expected = output.expected.replace("$${param.key}", "${param.value}")
+                    if(!outputs.isNullOrEmpty()) {
+                        for (output in outputs) {
+                            output.expected = output.expected.replace("$${param.key}", "${param.value}")
+                        }
                     }
                 }
             }
