@@ -35,8 +35,10 @@ data class Test(
                                     this.command[this.command.indexOf(item)] = item.replace("$${env.key}", variable.value)
                                 }
                             }
-                            for (output in this.outputs!!) {
-                                output.expected = output.expected.replace("$${env.key}", variable.value)
+                            if (!this.outputs.isNullOrEmpty()){
+                                for (output in this.outputs) {
+                                    output.expected = output.expected.replace("$${env.key}", variable.value)
+                                }
                             }
                             if (outputName.contains("$${env.key}")) {
                                 outputName = outputName.replace("$${env.key}", variable.value)
@@ -76,7 +78,7 @@ data class Test(
         }
 
         private fun getOutputsFromObj(obj: Map<String, Any>): List<Output>? {
-            if (!obj.containsKey("stderr") || !obj.containsKey("stdout")) {
+            if (!obj.containsKey("stderr") && !obj.containsKey("stdout")) {
                 return null
             }
             val outputList = mutableListOf<Output>()
@@ -140,28 +142,27 @@ data class Test(
                 val rawEnv = obj["env"] as Map<String, Any>
                 for (key in rawEnv.keys) {
                     if (key == "set") {
-                        val rawSets = rawEnv["set"] as List<Map<String, Any>>
-                        for (rawSet in rawSets) {
-                            val keys = rawSet.keys
-                            for (key in keys) {
-                                val set = rawSet[key]
-                                if (rawSet[key] is String) {
-                                    val env = Env(
-                                            Env.Operation.SET,
-                                            key,
-                                            Env.Type.STRING,
-                                            null
-                                    )
-                                    envList.add(env)
-                                } else {
+                        if(rawEnv["set"] is String) {
+                            val env = Env(
+                                    Env.Operation.SET,
+                                    rawEnv["set"] as String,
+                                    Env.Type.STRING,
+                                    null
+                            )
+                            envList.add(env)
+                        } else {
+                            val rawSets = rawEnv["set"] as List<Map<String, Any>>
+                            for (rawSet in rawSets) {
+                                val keys = rawSet.keys
+                                for (key in keys) {
                                     val set = rawSet[key] as Map<String, String>
                                     val pattern = JSONObject(set)
                                     val patternKey = pattern.keySet().first()
                                     val env = Env(
-                                        Env.Operation.SET,
-                                        key,
-                                        Env.Type.valueOf(patternKey.toUpperCase()),
-                                        pattern.getJSONObject(patternKey).toMap() as Map<String, Any>
+                                            Env.Operation.SET,
+                                            key,
+                                            Env.Type.valueOf(patternKey.toUpperCase()),
+                                            pattern.getJSONObject(patternKey).toMap() as Map<String, Any>
                                     )
                                     envList.add(env)
                                 }

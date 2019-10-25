@@ -11,6 +11,7 @@ data class Output(
     }
     enum class Compare(val value: String){
         EQUALS("EQUALS"),
+        NOTEMPTY("NOTEMPTY"),
         EXCLUDES("EXCLUDES"),
         CONTAINS("CONTAINS");
     }
@@ -21,6 +22,7 @@ data class Output(
                 else -> result.stderr!!
             }
             return when (this.compare) {
+                Compare.NOTEMPTY -> actual.isNotEmpty()
                 Compare.EXCLUDES -> !actual.contains(this.expected)
                 Compare.CONTAINS -> actual.contains(this.expected)
                 else -> actual == this.expected
