@@ -13,7 +13,8 @@ data class Env(
     enum class Type(val value: String) {
         STRING("STRING"),
         REPLACE("REPLACE"),
-        SPLIT("SPLIT")
+        SPLIT("SPLIT"),
+        AFTER("AFTER")
     }
 
     companion object{
@@ -27,6 +28,13 @@ data class Env(
             val position = pattern["position"] as Int
             return this.split(delimiter)[position]
         }
+        private fun String.valueAfterPattern(pattern: Map<String, Any>): String {
+            val find = pattern["after"] as String
+            val split = this.split(find)
+            val eow = "\\w+".toRegex()
+            val words = eow.findAll(split[1])
+            return words.first().value
+        }
         fun Env.getVariableFromResult(result: Result, type: Output.Type): Variable {
             val actual = when (type) {
                 Output.Type.STDERR -> result.stderr!!
@@ -35,6 +43,7 @@ data class Env(
             val value = when(this.type) {
                 Type.REPLACE -> actual.replaceFromPattern(this.pattern!!)
                 Type.SPLIT -> actual.splitFromPattern(this.pattern!!)
+                Type.AFTER -> actual.valueAfterPattern(this.pattern!!)
                 else -> actual
             }
             return Variable(this.key, value, Variable.Type.RESULT)
