@@ -10,7 +10,7 @@
   <url>https://github.com/mcred/vexrun</url>
 
   <properties>
-    <kotlin.version>1.7.0</kotlin.version>
+    <kotlin.version>1.7.10</kotlin.version>
     <main.class>io.mcred.vexrun.Cli</main.class>
   </properties>
 
